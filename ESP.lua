@@ -8,7 +8,7 @@ local ESP = {
 	Players = true,
 
 	-- components
-	Names = true,
+	Text = true,
 	Boxes = true,
 	Tracers = false,
 
@@ -19,6 +19,10 @@ local ESP = {
 
 	Font = 'UI',
 	TextSize = 19,
+	TextOutline = true,
+
+	DisplayName = true,
+	DisplayDistance = true,
 
 	BoxShift = CFrame.new(0, -1.5, 0),
 	BoxSize = Vector3.new(4, 6, 0),
@@ -165,9 +169,9 @@ function boxBase:Update()
 
 	local color
 	if ESP.Highlighted == self.Object then
-	   color = ESP.HighlightColor
+        color = ESP.HighlightColor
 	else
-		color = self.Color or self.ColorDynamic and self:ColorDynamic() or ESP:GetColor(self.Object) or ESP.Color
+	    color = self.Color or self.ColorDynamic and self:ColorDynamic() or ESP:GetColor(self.Object) or ESP.Color
 	end
 
 	local allow = true
@@ -230,6 +234,7 @@ function boxBase:Update()
 				self.Components.Quad.PointC = Vector2.new(BottomLeft.X, BottomLeft.Y)
 				self.Components.Quad.PointD = Vector2.new(BottomRight.X, BottomRight.Y)
 				self.Components.Quad.Color = color
+				self.Components.Quad.Thickness = ESP.Thickness
 
 				self.Components.Quad.ZIndex = IsPlrHighlighted and 2 or 1
 			else
@@ -240,37 +245,40 @@ function boxBase:Update()
 		self.Components.Quad.Visible = false
 	end
 
-	if ESP.Names then
+	if ESP.Text then
 		local TagPos, Vis5 = WorldToViewportPoint(cam, locs.TagPos.p)
 		
 		if Vis5 then
-			self.Components.Name.Visible = true
-			self.Components.Name.Position = Vector2.new(TagPos.X, TagPos.Y)
-			self.Components.Name.Text = self.Name
-			self.Components.Name.Color = color
-			
-			self.Components.Distance.Visible = true
-			self.Components.Distance.Position = Vector2.new(TagPos.X, TagPos.Y + 14)
-			self.Components.Distance.Text = math.floor((cam.CFrame.p - cf.p).magnitude) .."m away"
-			self.Components.Distance.Color = color
+			self.Components.Upper.Visible = true
+			self.Components.Upper.Position = Vector2.new(TagPos.X, TagPos.Y)
+			self.Components.Upper.Text = ESP.DisplayName and self.Name or ESP.DisplayDistance and math.floor((cam.CFrame.p - cf.p).magnitude) .."m away" or ""
+			self.Components.Upper.Color = color
 
-			self.Components['Name'].Size = ESP.FontSize
-			self.Components['Distance'].Size = ESP.FontSize
+			self.Components.Lower.Visible = true
+			self.Components.Lower.Position = Vector2.new(TagPos.X, TagPos.Y + 14)
+			self.Components.Lower.Text = ESP.DisplayName and ESP.DisplayDistance and math.floor((cam.CFrame.p - cf.p).magnitude) .."m away" or ""
+			self.Components.Lower.Color = color
 
-			self.Components['Name'].ZIndex = IsPlrHighlighted and 2 or 1
-			self.Components['Distance'].ZIndex = IsPlrHighlighted and 2 or 1
+			self.Components['Upper'].Size = ESP.TextSize
+			self.Components['Upper'].Size = ESP.TextSize
+
+			self.Components['Upper'].Outline = ESP.TextOutline
+			self.Components['Lower'].Outline = ESP.TextOutline
+
+			self.Components['Upper'].ZIndex = IsPlrHighlighted and 2 or 1
+			self.Components['Lower'].ZIndex = IsPlrHighlighted and 2 or 1
 
 			if Drawing.Fonts and Drawing.Fonts[ESP.Font] then
-				self.Components['Name'].Font = Drawing.Fonts[ESP.Font]
-				self.Components['Distance'].Font = Drawing.Fonts[ESP.Font]
+				self.Components['Upper'].Font = Drawing.Fonts[ESP.Font]
+				self.Components['Lower'].Font = Drawing.Fonts[ESP.Font]
 			end
 		else
-			self.Components.Name.Visible = false
-			self.Components.Distance.Visible = false
+			self.Components.Upper.Visible = false
+			self.Components.Lower.Visible = false
 		end
 	else
-		self.Components.Name.Visible = false
-		self.Components.Distance.Visible = false
+		self.Components.Upper.Visible = false
+		self.Components.Lower.Visible = false
 	end
 	
 	if ESP.Tracers then
@@ -299,7 +307,7 @@ function ESP:Add(obj, options)
 	local box = setmetatable({
 		Name = options.Name or obj.Name,
 		Type = "Box",
-		Color = options.Color --[[or self:GetColor(obj)]],
+		Color = options.Color, --or self:GetColor(obj),
 		Size = options.Size or self.BoxSize,
 		Object = obj,
 		Player = options.Player or plrs:GetPlayerFromCharacter(obj),
@@ -323,21 +331,21 @@ function ESP:Add(obj, options)
 		Visible = self.Enabled and self.Boxes
 	})
 
-	box.Components["Name"] = Draw("Text", {
+	box.Components["Upper"] = Draw("Text", {
 		Text = box.Name,
 		Color = box.Color,
 		Center = true,
-		Outline = true,
+		Outline = self.TextOutline,
 		Size = self.TextSize,
-		Visible = self.Enabled and self.Names
+		Visible = self.Enabled and self.Text
 	})
 
-	box.Components["Distance"] = Draw("Text", {
+	box.Components["Lower"] = Draw("Text", {
 		Color = box.Color,
 		Center = true,
-		Outline = true,
+		Outline = self.TextOutline,
 		Size = self.TextSize,
-		Visible = self.Enabled and self.Names
+		Visible = self.Enabled and self.Text
 	})
 	
 	box.Components["Tracer"] = Draw("Line", {
