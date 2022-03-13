@@ -210,14 +210,14 @@ function boxBase:Update()
 		cf = CFrame.new(cf.p, cam.CFrame.p)
 	end
 
-	local size = self.Size
+	local size, shift = self.Size or ESP.BoxSize, self.Shift or ESP.BoxShift
 	local locs = {
-		TopLeft 	= cf * ESP.BoxShift * CFrame.new(size.X   / 2,  size.Y / 2, 0),
-		TopRight 	= cf * ESP.BoxShift * CFrame.new(-size.X  / 2,  size.Y / 2, 0),
-		BottomLeft 	= cf * ESP.BoxShift * CFrame.new(size.X   / 2, -size.Y / 2, 0),
-		BottomRight = cf * ESP.BoxShift * CFrame.new(-size.X  / 2, -size.Y / 2, 0),
-		TagPos 		= cf * ESP.BoxShift * CFrame.new(0,			 	size.Y / 2, 0),
-		Torso 		= cf * ESP.BoxShift
+		TopLeft = 	cf * shift * CFrame.new(size.X / 2,  size.Y / 2, 0),
+		TopRight = 	cf * shift * CFrame.new(-size.X / 2,  size.Y / 2, 0),
+		BottomLeft = 	cf * shift * CFrame.new(size.X / 2, -size.Y / 2, 0),
+		BottomRight = 	cf * shift * CFrame.new(-size.X / 2, -size.Y / 2, 0),
+		TagPos = 	cf * shift * CFrame.new(0, size.Y / 2, 0),
+		Torso = 	cf * shift
 	}
 
 	if ESP.Boxes then
@@ -309,7 +309,8 @@ function ESP:Add(obj, options)
 		Name = options.Name or obj.Name,
 		Type = "Box",
 		Color = options.Color, --or self:GetColor(obj),
-		Size = options.Size or self.BoxSize,
+		Size = options.Size,
+		Shift = options.Shift,
 		Object = obj,
 		Player = options.Player or plrs:GetPlayerFromCharacter(obj),
 		PrimaryPart = options.PrimaryPart or obj.ClassName == "Model" and (obj.PrimaryPart or obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChildWhichIsA("BasePart")) or obj:IsA("BasePart") and obj,
